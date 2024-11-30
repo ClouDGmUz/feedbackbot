@@ -6,6 +6,7 @@ const path = require('path');
 const pgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcryptjs');
 const initializeDatabase = require('./db/init');
+const axios = require('axios');
 
 const app = express();
 
@@ -122,8 +123,26 @@ initializeDatabase().then(() => {
     });
 
     app.post('/login', async (req, res) => {
-        const { username, password } = req.body;
+        const { username, password, 'g-recaptcha-response': recaptchaResponse } = req.body;
+
+        // Verify reCAPTCHA
         try {
+            const recaptchaVerification = await axios.post(
+                'https://www.google.com/recaptcha/api/siteverify',
+                null,
+                {
+                    params: {
+                        secret: process.env.RECAPTCHA_SECRET_KEY,
+                        response: recaptchaResponse
+                    }
+                }
+            );
+
+            if (!recaptchaVerification.data.success) {
+                return res.render('login', { error: 'Please complete the reCAPTCHA verification' });
+            }
+
+            // Proceed with login
             const result = await pool.query('SELECT * FROM admin_users WHERE username = $1', [username]);
             const user = result.rows[0];
             
@@ -135,7 +154,7 @@ initializeDatabase().then(() => {
             }
         } catch (error) {
             console.error('Login error:', error);
-            res.render('login', { error: 'An error occurred' });
+            res.render('login', { error: 'An error occurred during login' });
         }
     });
 
