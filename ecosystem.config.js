@@ -5,6 +5,7 @@ module.exports = {
     watch: true,
     ignore_watch: ['node_modules', 'logs', 'public'],
     instances: 1,
+    exec_mode: 'fork',
     autorestart: true,
     max_memory_restart: '1G',
     env: {
