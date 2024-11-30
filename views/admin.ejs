@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Feedback System</title>
+    <link href="/css/output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">All Feedback</h2>
+            <div id="feedbackList" class="space-y-4">
+                <!-- Feedback items will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadAllFeedback() {
+            try {
+                const response = await fetch('/admin/feedback');
+                const data = await response.json();
+                if (data.success) {
+                    const feedbackList = document.getElementById('feedbackList');
+                    feedbackList.innerHTML = data.feedback.map(item => `
+                        <div class="border rounded-lg p-4" id="feedback-${item._id}">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-gray-500">User ID: ${item.userId}</p>
+                                    <p class="text-gray-700 mt-2">${item.content}</p>
+                                </div>
+                                <button onclick="deleteFeedback('${item._id}')" class="text-red-600 hover:text-red-800">Delete</button>
+                            </div>
+                            
+                            ${item.adminResponded ? `
+                                <div class="mt-2 p-2 bg-gray-50 rounded">
+                                    <p class="text-sm text-gray-600">Admin Response: ${item.adminResponse}</p>
+                                </div>
+                            ` : `
+                                <div class="mt-4">
+                                    <textarea id="response-${item._id}" class="w-full p-2 border rounded" placeholder="Write your response..."></textarea>
+                                    <button onclick="submitResponse('${item._id}')" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                                        Submit Response
+                                    </button>
+                                </div>
+                            `}
+                            <p class="text-sm text-gray-500 mt-2">Submitted on: ${new Date(item.createdAt).toLocaleDateString()}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function submitResponse(feedbackId) {
+            const response = document.getElementById(`response-${feedbackId}`).value;
+            try {
+                const result = await fetch(`/admin/respond/${feedbackId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ response }),
+                });
+                const data = await result.json();
+                if (data.success) {
+                    loadAllFeedback();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function deleteFeedback(feedbackId) {
+            if (confirm('Are you sure you want to delete this feedback?')) {
+                try {
+                    const response = await fetch(`/admin/feedback/${feedbackId}`, {
+                        method: 'DELETE',
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById(`feedback-${feedbackId}`).remove();
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        }
+
+        // Load feedback when page loads
+        loadAllFeedback();
+    </script>
+</body>
+</html>

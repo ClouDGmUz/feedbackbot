@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback System</title>
+    <link href="/css/output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Feedback System</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Submit Feedback</h2>
+            <form id="feedbackForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">User ID</label>
+                    <input type="text" id="userId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Feedback</label>
+                    <textarea id="content" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Submit Feedback</button>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Your Feedback History</h2>
+            <div id="feedbackList" class="space-y-4">
+                <!-- Feedback items will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('userId').value;
+            const content = document.getElementById('content').value;
+
+            try {
+                const response = await fetch('/feedback/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId, content }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Feedback submitted successfully');
+                    document.getElementById('content').value = '';
+                    loadFeedback(userId);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        async function loadFeedback(userId) {
+            try {
+                const response = await fetch(`/feedback/user/${userId}`);
+                const data = await response.json();
+                if (data.success) {
+                    const feedbackList = document.getElementById('feedbackList');
+                    feedbackList.innerHTML = data.feedback.map(item => `
+                        <div class="border rounded-lg p-4">
+                            <p class="text-gray-700">${item.content}</p>
+                            ${item.adminResponded ? `
+                                <div class="mt-2 p-2 bg-gray-50 rounded">
+                                    <p class="text-sm text-gray-600">Admin Response: ${item.adminResponse}</p>
+                                </div>
+                            ` : ''}
+                            <p class="text-sm text-gray-500 mt-2">Submitted on: ${new Date(item.createdAt).toLocaleDateString()}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
