@@ -37,10 +37,10 @@ router.post('/respond/:feedbackId', async (req, res) => {
 
         const feedback = result.rows[0];
         
-        // Send response via Telegram bot
+        // Send response via Telegram bot in Uzbek
         const bot = req.app.get('bot');
         await bot.sendMessage(feedback.telegram_user_id, 
-            `Admin Response to your feedback:\n\nYour feedback: ${feedback.content}\n\nResponse: ${response}`
+            `Admindan javob:\n\nSizning fikr-mulohazangiz: ${feedback.content}\n\nJavob: ${response}`
         );
 
         res.json({ success: true, message: 'Response sent successfully' });
