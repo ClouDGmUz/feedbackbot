@@ -4,7 +4,7 @@ require('dotenv').config();
 async function initializeDatabase() {
     // Connect to postgres database to create new database if needed
     const pgPool = new Pool({
-        connectionString: 'postgresql://postgres:user@localhost:5432/postgres'
+        connectionString: process.env.DATABASE_URL
     });
 
     try {
