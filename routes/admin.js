@@ -4,16 +4,51 @@ const router = express.Router();
 // Admin dashboard
 router.get('/', async (req, res) => {
     try {
-        const query = `
+        const { startDate, endDate, responseStatus, search } = req.query;
+        
+        let query = `
             SELECT f.*, 
                    CASE 
                        WHEN f.username IS NOT NULL THEN f.username 
                        ELSE f.telegram_user_id 
                    END as display_name
             FROM feedback f 
-            ORDER BY created_at DESC
+            WHERE 1=1
         `;
-        const result = await req.db.query(query);
+        
+        const params = [];
+        let paramIndex = 1;
+        
+        // Date range filter
+        if (startDate && endDate) {
+            query += ` AND created_at BETWEEN $${paramIndex} AND $${paramIndex + 1}`;
+            params.push(startDate, endDate);
+            paramIndex += 2;
+        }
+        
+        // Response status filter
+        if (responseStatus) {
+            if (responseStatus === 'responded') {
+                query += ` AND admin_responded = true`;
+            } else if (responseStatus === 'not_responded') {
+                query += ` AND admin_responded = false`;
+            }
+        }
+        
+        // Search filter
+        if (search) {
+            query += ` AND (
+                content ILIKE $${paramIndex}
+                OR username ILIKE $${paramIndex}
+                OR telegram_user_id::text ILIKE $${paramIndex}
+            )`;
+            params.push(`%${search}%`);
+            paramIndex++;
+        }
+        
+        query += ` ORDER BY created_at DESC`;
+        
+        const result = await req.db.query(query, params);
         res.render('admin/dashboard', { feedback: result.rows });
     } catch (error) {
         console.error('Error fetching feedback:', error);
