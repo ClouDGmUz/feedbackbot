@@ -1,17 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Feedback System</title>
     <link href="/css/output.css" rel="stylesheet">
+    <script>
+        // Check for saved theme preference, otherwise use system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold dark:text-white">Admin Dashboard</h1>
+            <button id="themeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200">
+                <svg id="sunIcon" class="w-6 h-6 text-gray-800 dark:text-gray-200 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <svg id="moonIcon" class="w-6 h-6 text-gray-800 dark:text-gray-200 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </div>
         
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">All Feedback</h2>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 dark:text-white">All Feedback</h2>
             <div id="feedbackList" class="space-y-4">
                 <!-- Feedback items will be inserted here -->
             </div>
@@ -19,6 +37,18 @@
     </div>
 
     <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        });
+
         async function loadAllFeedback() {
             try {
                 const response = await fetch('/admin/feedback');
@@ -26,52 +56,51 @@
                 if (data.success) {
                     const feedbackList = document.getElementById('feedbackList');
                     feedbackList.innerHTML = data.feedback.map(item => `
-                        <div class="border rounded-lg p-4" id="feedback-${item._id}">
+                        <div class="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800" id="feedback-${item._id}">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <p class="text-sm text-gray-500">User ID: ${item.userId}</p>
-                                    <p class="text-gray-700 mt-2">${item.content}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">User ID: ${item.userId}</p>
+                                    <p class="text-gray-700 dark:text-gray-300 mt-2">${item.content}</p>
                                 </div>
-                                <button onclick="deleteFeedback('${item._id}')" class="text-red-600 hover:text-red-800">Delete</button>
+                                <button onclick="deleteFeedback('${item._id}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
                             </div>
                             
                             ${item.adminResponded ? `
-                                <div class="mt-2 p-2 bg-gray-50 rounded">
-                                    <p class="text-sm text-gray-600">Admin Response: ${item.adminResponse}</p>
+                                <div class="mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                    <p class="text-sm text-gray-600 dark:text-gray-300">Admin Response: ${item.adminResponse}</p>
                                 </div>
                             ` : `
                                 <div class="mt-4">
-                                    <textarea id="response-${item._id}" class="w-full p-2 border rounded" placeholder="Write your response..."></textarea>
-                                    <button onclick="submitResponse('${item._id}')" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                                    <textarea id="response-${item._id}" class="w-full p-2 border dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="Write your response..."></textarea>
+                                    <button onclick="submitResponse('${item._id}')" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
                                         Submit Response
                                     </button>
                                 </div>
                             `}
-                            <p class="text-sm text-gray-500 mt-2">Submitted on: ${new Date(item.createdAt).toLocaleDateString()}</p>
                         </div>
                     `).join('');
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error loading feedback:', error);
             }
         }
 
         async function submitResponse(feedbackId) {
-            const response = document.getElementById(`response-${feedbackId}`).value;
+            const responseText = document.getElementById(`response-${feedbackId}`).value;
             try {
-                const result = await fetch(`/admin/respond/${feedbackId}`, {
+                const response = await fetch(`/admin/feedback/${feedbackId}/respond`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ response }),
+                    body: JSON.stringify({ response: responseText })
                 });
-                const data = await result.json();
+                const data = await response.json();
                 if (data.success) {
                     loadAllFeedback();
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error submitting response:', error);
             }
         }
 
@@ -79,14 +108,14 @@
             if (confirm('Are you sure you want to delete this feedback?')) {
                 try {
                     const response = await fetch(`/admin/feedback/${feedbackId}`, {
-                        method: 'DELETE',
+                        method: 'DELETE'
                     });
                     const data = await response.json();
                     if (data.success) {
                         document.getElementById(`feedback-${feedbackId}`).remove();
                     }
                 } catch (error) {
-                    console.error('Error:', error);
+                    console.error('Error deleting feedback:', error);
                 }
             }
         }
