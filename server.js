@@ -168,6 +168,112 @@ initializeDatabase().then(() => {
 
     app.use('/feedback', require('./routes/feedback'));
 
+    // Root route and 404 handler
+    app.use((req, res) => {
+        res.status(404).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>404 - Page Not Found</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                <style>
+                    body {
+                        font-family: 'Inter', sans-serif;
+                        background: #1a1a1a;
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0;
+                        color: #fff;
+                    }
+                    .glitch {
+                        position: relative;
+                        font-size: 150px;
+                        font-weight: bold;
+                        text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                                   0.025em 0.04em 0 #fffc00;
+                        animation: glitch 725ms infinite;
+                    }
+                    .glitch span {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                    }
+                    .glitch span:first-child {
+                        animation: glitch 500ms infinite;
+                        clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+                        transform: translate(-0.04em, -0.03em);
+                        opacity: 0.75;
+                    }
+                    .glitch span:last-child {
+                        animation: glitch 375ms infinite;
+                        clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+                        transform: translate(0.04em, 0.03em);
+                        opacity: 0.75;
+                    }
+                    @keyframes glitch {
+                        0% {
+                            text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                                       0.025em 0.04em 0 #fffc00;
+                        }
+                        15% {
+                            text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                                       0.025em 0.04em 0 #fffc00;
+                        }
+                        16% {
+                            text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                                       -0.05em -0.05em 0 #fffc00;
+                        }
+                        49% {
+                            text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                                       -0.05em -0.05em 0 #fffc00;
+                        }
+                        50% {
+                            text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                                       0 -0.04em 0 #fffc00;
+                        }
+                        99% {
+                            text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                                       0 -0.04em 0 #fffc00;
+                        }
+                        100% {
+                            text-shadow: -0.05em 0 0 #00fffc, -0.025em -0.04em 0 #fc00ff,
+                                       -0.04em -0.025em 0 #fffc00;
+                        }
+                    }
+                </style>
+            </head>
+            <body class="bg-[#1a1a1a]">
+                <div class="text-center">
+                    <h1 class="glitch mb-8">
+                        404
+                        <span aria-hidden="true">404</span>
+                        <span aria-hidden="true">404</span>
+                    </h1>
+                    <p class="text-2xl mb-4 text-gray-400">Page not found</p>
+                    <p class="text-gray-500 mb-8">The page you're looking for doesn't exist or has been moved.</p>
+                    <a href="https://condoroil.uz" 
+                       class="inline-flex items-center px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg hover:from-purple-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        ← Back to Homepage
+                    </a>
+                </div>
+                <script>
+                    // Add some random glitch effects
+                    setInterval(() => {
+                        const glitch = document.querySelector('.glitch');
+                        glitch.style.transform = \`translate(\${Math.random() * 2 - 1}px, \${Math.random() * 2 - 1}px)\`;
+                        setTimeout(() => {
+                            glitch.style.transform = 'translate(0, 0)';
+                        }, 50);
+                    }, 2500);
+                </script>
+            </body>
+            </html>
+        `);
+    });
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
